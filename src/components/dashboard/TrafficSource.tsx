@@ -18,7 +18,7 @@ export function TrafficSource() {
             <CardContent>
                 <div className="flex items-center justify-between">
                     <div className="relative w-[120px] h-[120px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width={120} height={120}>
                             <PieChart>
                                 <Pie
                                     data={data}

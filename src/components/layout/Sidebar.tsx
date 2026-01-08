@@ -1,19 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import { LayoutGrid, User, Code, Puzzle, ShoppingCart, CreditCard, Users, History, LogOut, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 const sidebarItems = [
-    { icon: LayoutGrid, label: "Dashboard", href: "/" },
-    { icon: Code, label: "API", href: "/api" },
-    { icon: Puzzle, label: "Plugin", href: "/plugin" },
-    { icon: ShoppingCart, label: "My Orders", href: "/orders" },
-    { icon: CreditCard, label: "Plans", href: "/plans" },
-    { icon: Users, label: "Users", href: "/users" },
-    { icon: History, label: "Activity History", href: "/history" },
+    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", color: "text-blue-600" },
+    { icon: Code, label: "API", href: "/api", color: "text-emerald-500" },
+    { icon: ShoppingCart, label: "My Orders", href: "/orders", color: "text-indigo-600" },
+    { icon: CreditCard, label: "Plans", href: "/plans", color: "text-pink-600" },
+    { icon: Users, label: "Users", href: "/users", color: "text-teal-600" },
+    { icon: History, label: "Activity History", href: "/history", color: "text-cyan-600" },
 ]
 
 interface SidebarProps {
@@ -23,6 +23,11 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
     const pathname = usePathname()
+    const router = useRouter() // Added hook
+
+    const handleSignOut = () => {
+        router.push("/login")
+    }
 
     return (
         <div
@@ -31,16 +36,18 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                 collapsed ? "w-16" : "w-64"
             )}
         >
+            {/* ... Header section remains same ... */}
             <div className="p-4 border-b flex items-center justify-between h-[65px]">
                 {!collapsed && (
                     <div className="flex items-center gap-2">
-                        {/* Logo from user URL */}
-                        <img
+                        <Image
                             src="/logo.png"
                             alt="Logo"
+                            width={100}
+                            height={32}
                             className="h-8 w-auto"
                             onError={(e) => {
-                                e.currentTarget.style.display = 'none'; // Fallback if image fails
+                                e.currentTarget.style.display = 'none';
                             }}
                         />
                         <h1 className="font-bold text-xl tracking-tight truncate">Message API</h1>
@@ -48,15 +55,16 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                 )}
                 {collapsed && (
                     <div className="w-full flex justify-center">
-                        <img
+                        <Image
                             src="/logo.png"
                             alt="Logo"
+                            width={100}
+                            height={32}
                             className="h-8 w-auto"
                         />
                     </div>
                 )}
 
-                {/* Close/Toggle Button */}
                 {!collapsed && (
                     <button onClick={toggleSidebar} className="p-1 hover:bg-gray-100 rounded-full text-gray-500">
                         <X className="h-5 w-5" />
@@ -64,11 +72,6 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                 )}
             </div>
 
-            {/* Collapse/Expand Toggle for collapsed state (optional, usually users click a menu button elsewhere, but here maybe at bottom or top) 
-           For this specific request "add close button for collabs", using the X inside makes sense. 
-           To open it back up, we might need a trigger. A small button on the side or the collapsed header itself? 
-           Let's add a small chevron when collapsed at the bottom or top.
-       */}
             {collapsed && (
                 <button
                     onClick={toggleSidebar}
@@ -81,21 +84,28 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
 
             <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
                 {sidebarItems.map((item) => {
-                    const isActive = pathname === item.href
+                    // Logic fixed: If it's the Admin Sidebar, Dashboard always goes to /dashboard/admin
+                    let href = item.href
+                    if (item.href === "/dashboard") {
+                        href = "/dashboard/admin"
+                    }
+
+                    const isActive = pathname === href || (item.href === "/dashboard" && pathname === href)
+
                     return (
                         <Link
-                            key={item.href}
-                            href={item.href}
+                            key={item.label}
+                            href={href}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors group",
                                 isActive
-                                    ? "bg-primary/5 text-primary"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-gray-50 text-gray-900"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                                 collapsed && "justify-center px-2"
                             )}
                             title={collapsed ? item.label : undefined}
                         >
-                            <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "text-gray-500")} />
+                            <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", item.color)} />
                             {!collapsed && <span>{item.label}</span>}
                         </Link>
                     )
@@ -114,7 +124,10 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                                 <p className="text-xs text-gray-500 truncate">ID: d1e0c262c9...</p>
                             </div>
                         </Link>
-                        <button className="flex items-center gap-2 text-red-500 text-sm font-medium px-2 hover:bg-red-50 w-full p-2 rounded-md transition-colors">
+                        <button
+                            onClick={handleSignOut}
+                            className="flex items-center gap-2 text-red-500 text-sm font-medium px-2 hover:bg-red-50 w-full p-2 rounded-md transition-colors"
+                        >
                             <LogOut className="h-4 w-4" />
                             Sign Out
                         </button>
@@ -126,7 +139,10 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
                                 <AvatarFallback>U</AvatarFallback>
                             </Avatar>
                         </Link>
-                        <button className="text-red-500 hover:bg-red-50 p-2 rounded-md">
+                        <button
+                            onClick={handleSignOut}
+                            className="text-red-500 hover:bg-red-50 p-2 rounded-md"
+                        >
                             <LogOut className="h-4 w-4" />
                         </button>
                     </div>
